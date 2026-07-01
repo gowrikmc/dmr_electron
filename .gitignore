@@ -1,0 +1,6 @@
+dist/
+win-unpacked/
+*.exe
+*.blockmap
+latest.yml
+EOF

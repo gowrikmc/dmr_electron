@@ -1,0 +1,15 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.dmr
+productName: dmr
+publish:
+  provider: github
+  owner: gowrikmc
+  repo: dmr_electron
+files:
+  - filter:
+      - '**/*'
+win:
+  target: nsis
+electronVersion: 42.4.0

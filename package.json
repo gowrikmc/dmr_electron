@@ -1,0 +1,53 @@
+{
+  "name": "dmr",
+  "version": "1.0.3",
+  "description": "KMC_Corp_application",
+  "license": "ISC",
+  "author": "Gowrishankar-117811",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./input.css -o ./style.css",
+    "watch:css": "tailwindcss -i ./input.css -o ./style.css --watch",
+    "start": "npm run build:css && electron .",
+    "dist": "electron-builder",
+    "publish": "npm version patch --no-git-tag-version && electron-builder --publish always",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
+    "tailwindcss": "^4.3.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.4.2",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.9",
+    "pg": "^8.21.0",
+    "sharp": "^0.34.2"
+  },
+  "build": {
+    "appId": "com.dmr",
+    "productName": "dmr",
+    "publish": {
+      "provider": "github",
+      "owner": "gowrikmc",
+      "repo": "dmr_electron"
+    },
+    "files": [
+      "**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "eb.env",
+        "to": "eb.env"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

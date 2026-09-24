@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' blob:;"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Dashboard — DMR</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background: var(--app-bg, #0a0f1e);
+        color: var(--app-text, #f1f5f9);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* ── Top navbar ── */
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 28px;
+        height: 60px;
+        background: var(--app-surface-alt, rgba(15, 23, 42, 0.95));
+        border-bottom: 1px solid var(--app-border, rgba(148,163,184,0.1));
+        backdrop-filter: blur(10px);
+        flex-shrink: 0;
+      }
+      .nav-brand {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 17px; font-weight: 700; color: var(--app-text, #f1f5f9);
+      }
+      .nav-logo {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, #0ea5e9, #6366f1);
+        border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+      }
+      .nav-user {
+        display: flex; align-items: center; gap: 16px;
+        font-size: 13.5px; color: var(--app-muted, #94a3b8);
+      }
+      .nav-user .unit-tag {
+        background: rgba(14,165,233,0.12);
+        border: 1px solid rgba(14,165,233,0.25);
+        color: #38bdf8;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      #user-greeting { color: var(--app-text, #e2e8f0); font-weight: 500; }
+
+      /* Logout button */
+      #logoutbutton {
+        display: flex; align-items: center; gap: 6px;
+        background: rgba(239,68,68,0.08);
+        border: 1px solid rgba(239,68,68,0.2);
+        color: #f87171;
+        padding: 7px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s;
+      }
+      #logoutbutton:hover {
+        background: rgba(239,68,68,0.18);
+        border-color: rgba(239,68,68,0.4);
+      }
+
+      /* ── Main content ── */
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        position: relative;
+      }
+
+      /* Background glow */
+      main::before {
+        content: '';
+        position: absolute;
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%);
+        border-radius: 50%;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+
+      .welcome-text {
+        text-align: center;
+        margin-bottom: 48px;
+        position: relative;
+      }
+      .welcome-text h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--app-text, #f1f5f9);
+        letter-spacing: -0.5px;
+      }
+      .welcome-text p {
+        color: var(--app-muted, #64748b);
+        font-size: 14px;
+        margin-top: 6px;
+      }
+
+      /* ── Cards grid ── */
+      .cards {
+        display: flex;
+        gap: 20px;
+        position: relative;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .card {
+        width: 220px;
+        background: var(--app-surface, rgba(15, 23, 42, 0.85));
+        border: 1px solid var(--app-border, rgba(148,163,184,0.12));
+        border-radius: 18px;
+        padding: 32px 24px 28px;
+        text-align: center;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        backdrop-filter: blur(12px);
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        animation: fadeUp 0.4s ease both;
+        position: relative;
+        overflow: hidden;
+      }
+      .card:nth-child(1) { animation-delay: 0.05s; }
+      .card:nth-child(2) { animation-delay: 0.12s; }
+
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 18px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .card-index::before   { background: radial-gradient(circle at top, rgba(14,165,233,0.08), transparent 60%); }
+      .card-view::before     { background: radial-gradient(circle at top, rgba(99,102,241,0.08),  transparent 60%); }
+      .card-settings::before { background: radial-gradient(circle at top, rgba(16,185,129,0.08),  transparent 60%); }
+
+      .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      }
+      .card:hover::before { opacity: 1; }
+      .card-index:hover    { border-color: rgba(14,165,233,0.4);  box-shadow: 0 20px 50px rgba(14,165,233,0.1); }
+      .card-view:hover     { border-color: rgba(99,102,241,0.4);  box-shadow: 0 20px 50px rgba(99,102,241,0.1); }
+      .card-settings:hover { border-color: rgba(16,185,129,0.4);  box-shadow: 0 20px 50px rgba(16,185,129,0.1); }
+
+      .card-icon {
+        width: 60px; height: 60px;
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+      }
+      .card-index .card-icon    { background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(14,165,233,0.05)); }
+      .card-view .card-icon     { background: linear-gradient(135deg, rgba(99,102,241,0.2),  rgba(99,102,241,0.05)); }
+      .card-settings .card-icon { background: linear-gradient(135deg, rgba(16,185,129,0.2),  rgba(16,185,129,0.05)); }
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--app-text, #f1f5f9);
+      }
+      .card-desc {
+        font-size: 12.5px;
+        color: var(--app-muted, #64748b);
+        line-height: 1.5;
+      }
+
+      .card-arrow {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+        margin-top: 4px;
+        transition: transform 0.2s;
+      }
+      .card-index .card-arrow    { background: rgba(14,165,233,0.15); color: #38bdf8; }
+      .card-view .card-arrow     { background: rgba(99,102,241,0.15);  color: #a5b4fc; }
+      .card-settings .card-arrow { background: rgba(16,185,129,0.15);  color: #34d399; }
+      .card:hover .card-arrow { transform: translateX(4px); }
+
+      .custom-alert-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.68);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 20000;
+      }
+      .custom-alert-modal.show { display: flex; }
+      .custom-alert-card {
+        width: min(420px, 100%);
+        background: var(--app-surface, #ffffff);
+        color: var(--app-text, #111827);
+        border: 1px solid var(--app-border, transparent);
+        border-radius: 16px;
+        padding: 22px 22px 20px;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
+        text-align: center;
+      }
+      .custom-alert-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin: 0 auto 12px;
+        display: grid;
+        place-items: center;
+        font-size: 23px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      }
+      .custom-alert-card h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+      .custom-alert-card p {
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--app-muted, #4b5563);
+        margin-bottom: 16px;
+      }
+      .custom-alert-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+      .custom-alert-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 9px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .custom-alert-btn.primary {
+        background: linear-gradient(135deg, #0ea5e9, #6366f1);
+        color: #fff;
+      }
+      .custom-alert-btn.secondary {
+        background: var(--app-surface-alt, #e5e7eb);
+        color: var(--app-text, #374151);
+        border: 1px solid var(--app-border, transparent);
+      }
+
+      /* Admin role badge */
+      .role-badge {
+        font-size: 11px; font-weight: 600;
+        background: rgba(16,185,129,0.15);
+        border: 1px solid rgba(16,185,129,0.3);
+        color: #34d399;
+        padding: 3px 10px;
+        border-radius: 20px;
+        display: none;
+      }
+      .role-badge.visible { display: inline; }
+    </style>
+  </head>
+  <body>
+
+    <!-- Top navbar -->
+    <header>
+      <div class="nav-brand">
+        <div class="nav-logo">📋</div>
+        DMR Application
+      </div>
+      <div class="nav-user">
+        <span id="user-greeting">Welcome, —</span>
+        <span class="unit-tag" id="unit-tag">Unit: —</span>
+        <span class="role-badge" id="role-badge">Admin</span>
+        <button id="logoutbutton">⏻ Log Out</button>
+      </div>
+    </header>
+
+    <!-- Main dashboard -->
+    <main>
+      <div class="welcome-text">
+        <h2>What would you like to do?</h2>
+        <p>Select a module to get started</p>
+      </div>
+
+      <div class="cards">
+
+        <!-- Index card -->
+        <div class="card card-index" id="btnIndex" role="button" tabindex="0">
+          <div class="card-icon">📁</div>
+          <div class="card-title">File Index</div>
+          <div class="card-desc">Upload and index new patient documents into the system</div>
+          <div class="card-arrow">→</div>
+        </div>
+
+        <!-- View card -->
+        <div class="card card-view" id="btnView" role="button" tabindex="0">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">File View</div>
+          <div class="card-desc">Browse and view indexed patient files by IP/OP/ER number</div>
+          <div class="card-arrow">→</div>
+        </div>
+
+        <!-- Settings card — admin only, hidden by default -->
+        <div class="card card-settings" id="btnSettings" role="button" tabindex="0" style="display:none;">
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">Settings</div>
+          <div class="card-desc">Manage users, units, and system configuration</div>
+          <div class="card-arrow">→</div>
+        </div>
+
+      </div>
+    </main>
+
+    <div id="custom-alert-modal" class="custom-alert-modal" role="dialog" aria-modal="true" aria-labelledby="custom-alert-title">
+      <div class="custom-alert-card">
+        <div id="custom-alert-icon" class="custom-alert-icon">!</div>
+        <h3 id="custom-alert-title">Notice</h3>
+        <p id="custom-alert-message"></p>
+        <div class="custom-alert-actions">
+          <button id="custom-alert-cancel" class="custom-alert-btn secondary" type="button">Cancel</button>
+          <button id="custom-alert-ok" class="custom-alert-btn primary" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    font-src 'self';
+    connect-src 'self';
+    object-src 'self' data:;
+  " />
+    <title>File View</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Top bar ── */
+        #topbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: #1e3a5f;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        #back {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: none; color: #fff;
+            padding: 6px 14px; border-radius: 6px;
+            cursor: pointer; font-size: 14px;
+        }
+        #back:hover { background: rgba(255,255,255,0.25); }
+        #topbar h1 { font-size: 17px; font-weight: 600; }
+
+        /* ── Main split layout ── */
+        #layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── Left panel: opipno list ── */
+        #left-panel {
+            width: 220px;
+            min-width: 180px;
+            background: #fff;
+            border-right: 1px solid #dde1e7;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        #left-panel-title {
+            padding: 12px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        #opip-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .opip-item {
+            padding: 11px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.15s;
+        }
+        .opip-item:hover { background: #eff6ff; color: #1d4ed8; }
+        .opip-item.active {
+            background: #1e40af;
+            color: #fff;
+        }
+        .opip-item .badge {
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(0,0,0,0.12);
+            border-radius: 10px;
+            padding: 1px 7px;
+        }
+        .opip-item.active .badge { background: rgba(255,255,255,0.25); }
+
+        /* ── Right panel ── */
+        #right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Document/file lists row ── */
+        #lists-row {
+            display: flex;
+            flex-shrink: 0;
+            border-bottom: 1px solid #dde1e7;
+            background: #fff;
+            height: 240px;
+            min-height: 240px;
+        }
+
+        /* ── Document list (left of file list) ── */
+        #document-section {
+            width: 50%;
+            border-right: 1px solid #dde1e7;
+            background: #fff;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        #document-section-title {
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            position: sticky;
+            top: 0;
+        }
+        #document-list-items { list-style: none; }
+        .document-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 18px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            font-size: 13.5px;
+            color: #374151;
+            transition: background 0.1s;
+        }
+        .document-item:hover { background: #eff6ff; color: #1d4ed8; }
+        .document-item.active { background: #dbeafe; color: #1e40af; font-weight: 600; }
+        .document-item:last-child { border-bottom: none; }
+        .document-item .badge {
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 1px 7px;
+        }
+
+        /* ── File list (right of document list) ── */
+        #file-section {
+            width: 50%;
+            background: #fff;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        #file-section-title {
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            position: sticky;
+            top: 0;
+        }
+        #file-list-items { list-style: none; }
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 18px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            font-size: 13.5px;
+            color: #374151;
+            transition: background 0.1s;
+        }
+        .file-item:hover { background: #eff6ff; color: #1d4ed8; }
+        .file-item.active { background: #dbeafe; color: #1e40af; font-weight: 600; }
+        .file-item:last-child { border-bottom: none; }
+        .file-icon { font-size: 16px; flex-shrink: 0; }
+
+        /* ── Viewer (right-bottom) ── */
+        #viewer-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f0f2f5;
+        }
+        #viewer-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+            color: #6b7280;
+            flex-shrink: 0;
+        }
+        #viewer-filename { font-weight: 600; color: #1e3a5f; }
+        #viewer-content {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
+        }
+        #viewer-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+        #viewer-content embed, #viewer-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 6px;
+            min-height: 400px;
+        }
+        #viewer-placeholder {
+            color: #9ca3af;
+            font-size: 15px;
+            margin: auto;
+            text-align: center;
+            padding: 40px;
+        }
+        #viewer-placeholder .icon { font-size: 48px; margin-bottom: 12px; }
+        #loading-spinner {
+            display: none;
+            margin: auto;
+            font-size: 15px;
+            color: #6b7280;
+        }
+        #loading-spinner.visible { display: block; }
+        #error-msg {
+            display: none;
+            margin: auto;
+            color: #ef4444;
+            font-size: 14px;
+            padding: 20px;
+        }
+        #error-msg.visible { display: block; }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top bar -->
+    <div id="topbar">
+        <button id="back">
+            <svg width="16" height="16" viewBox="0 0 10 10" fill="none">
+                <path d="M6.5 1 2 5l4.5 4" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back
+        </button>
+        <h1>File Viewer</h1>
+
+    </div>
+
+    <!-- Split layout -->
+    <div id="layout">
+
+        <!-- Left: opipno list -->
+        <div id="left-panel">
+            <div id="left-panel-title">IP / OP / ER Numbers</div>
+            <div>
+                <input type="text" id="search-opip" placeholder="Search IP/OP..." 
+                style="width:100%; padding:8px 12px; border:none; border-bottom:1px solid #e5e7eb; font-size:13px; outline:none;">
+            </div>
+            <div id="opip-list">
+                <div style="padding:20px; color:#9ca3af; font-size:13px;">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Right: files + viewer -->
+        <div id="right-panel">
+
+            <div id="lists-row">
+                <!-- Document list -->
+                <div id="document-section">
+                    <div id="document-section-title">Documents</div>
+                    <ul id="document-list-items">
+                        <li style="padding:14px 18px; color:#9ca3af; font-size:13px;">
+                            Select an IP/OP number to view documents
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- File list -->
+                <div id="file-section">
+                    <div id="file-section-title">Files</div>
+                    <ul id="file-list-items">
+                        <li style="padding:14px 18px; color:#9ca3af; font-size:13px;">
+                            Select a document to view files
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- File viewer -->
+            <div id="viewer-section">
+                <div id="viewer-toolbar">
+                    <span>📂</span>
+                    <span id="viewer-filename">No file selected</span>
+                </div>
+                <div id="viewer-content">
+                    <div id="viewer-placeholder">
+                        <div class="icon">🗂️</div>
+                        <div>Select a file from the list above to view it here</div>
+                    </div>
+                    <div id="loading-spinner">⏳ Loading file...</div>
+                    <div id="error-msg"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="File_view.js"></script>
+</body>
+
+</html>

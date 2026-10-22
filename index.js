@@ -371,6 +371,37 @@ ipcMain.handle("GetIpNoIndexCount", async (event, { ipNo }) => {
     }
 });
 
+ipcMain.handle("GetUserIndexCount", async (event, { username }) => {
+    try {
+        const result = await pool.query(
+            "SELECT COUNT(DISTINCT d.opipno) as count FROM dmrindex d WHERE d.username = $1",
+            [username]
+        );
+        return { success: true, data: result.rows[0].count };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle("GetUserIndexLogs", async (event, { username }) => {
+    try {
+        const result = await pool.query(
+            `SELECT d.opipno,
+                    STRING_AGG(DISTINCT d.documentdescription, ', ' ORDER BY d.documentdescription) AS documents,
+                    COUNT(*) AS file_count
+             FROM dmrindex d
+             left JOIN dmrindex_det dd ON dd.dmrindexid = d.dmrindexid
+             WHERE d.username = $1
+             GROUP BY d.opipno
+             ORDER BY MAX(d.dmrindexid) DESC`,
+            [username]
+        );
+        return { success: true, data: result.rows };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
 function createWindow() {
     const { workAreaSize } = screen.getPrimaryDisplay();
 
@@ -380,6 +411,7 @@ function createWindow() {
     const win = new BrowserWindow({
         width,
         height,
+        icon: path.join(__dirname, 'assets', 'icon.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,

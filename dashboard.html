@@ -149,6 +149,7 @@
       }
       .card:nth-child(1) { animation-delay: 0.05s; }
       .card:nth-child(2) { animation-delay: 0.12s; }
+      .card:nth-child(3) { animation-delay: 0.19s; }
 
       @keyframes fadeUp {
         from { opacity: 0; transform: translateY(20px); }
@@ -186,6 +187,7 @@
       .card-index .card-icon    { background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(14,165,233,0.05)); }
       .card-view .card-icon     { background: linear-gradient(135deg, rgba(99,102,241,0.2),  rgba(99,102,241,0.05)); }
       .card-settings .card-icon { background: linear-gradient(135deg, rgba(16,185,129,0.2),  rgba(16,185,129,0.05)); }
+      .card-total .card-icon    { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05)); }
 
       .card-title {
         font-size: 16px;
@@ -209,7 +211,68 @@
       .card-index .card-arrow    { background: rgba(14,165,233,0.15); color: #38bdf8; }
       .card-view .card-arrow     { background: rgba(99,102,241,0.15);  color: #a5b4fc; }
       .card-settings .card-arrow { background: rgba(16,185,129,0.15);  color: #34d399; }
+      .card-total .card-arrow    { background: rgba(245,158,11,0.15);  color: #fbbf24; }
       .card:hover .card-arrow { transform: translateX(4px); }
+
+      .card-total { cursor: default; }
+      .card-total:hover { border-color: rgba(245,158,11,0.4); box-shadow: 0 20px 50px rgba(245,158,11,0.1); }
+      .index-total {
+        font-size: 30px;
+        line-height: 1;
+        font-weight: 700;
+        color: #fbbf24;
+      }
+
+      .index-logs-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.68);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 19999;
+      }
+      .index-logs-modal.show { display: flex; }
+      .index-logs-card {
+        width: min(760px, 100%);
+        max-height: min(680px, 90vh);
+        overflow: hidden;
+        background: var(--app-surface, #ffffff);
+        color: var(--app-text, #111827);
+        border: 1px solid var(--app-border, transparent);
+        border-radius: 16px;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
+      }
+      .index-logs-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 20px 22px;
+        border-bottom: 1px solid var(--app-border, rgba(148,163,184,0.12));
+      }
+      .index-logs-header h3 { font-size: 18px; }
+      .index-logs-close {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--app-border, rgba(148,163,184,0.2));
+        border-radius: 50%;
+        background: transparent;
+        color: var(--app-text, #374151);
+        cursor: pointer;
+        font-size: 18px;
+      }
+      .index-logs-body { overflow: auto; max-height: calc(min(680px, 90vh) - 78px); }
+      .index-logs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .index-logs-table th,
+      .index-logs-table td { padding: 12px 18px; text-align: left; border-bottom: 1px solid var(--app-border, rgba(148,163,184,0.1)); }
+      .index-logs-table th { color: var(--app-muted, #64748b); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .index-logs-table tbody tr { transition: background-color 0.15s ease, color 0.15s ease; }
+      .index-logs-table tbody tr:hover { background: rgba(245,158,11,0.14); color: var(--app-text, #f1f5f9); }
+      .index-logs-table td:last-child,
+      .index-logs-table th:last-child { text-align: right; }
+      .index-logs-empty { padding: 32px 22px; text-align: center; color: var(--app-muted, #64748b); }
 
       .custom-alert-modal {
         position: fixed;
@@ -331,6 +394,14 @@
           <div class="card-arrow">→</div>
         </div>
 
+        <!-- Completed index total -->
+        <div class="card card-total" id="btnIndexTotal" role="button" tabindex="0" aria-label="View completed index logs" aria-live="polite">
+          <div class="card-icon">✓</div>
+          <div class="card-title">Completed Index Logs</div>
+          <div class="index-total" id="index-total">—</div>
+          <div class="card-desc">Total index logs completed by you</div>
+        </div>
+
         <!-- Settings card — admin only, hidden by default -->
         <div class="card card-settings" id="btnSettings" role="button" tabindex="0" style="display:none;">
           <div class="card-icon">⚙️</div>
@@ -341,6 +412,24 @@
 
       </div>
     </main>
+
+    <div id="index-logs-modal" class="index-logs-modal" role="dialog" aria-modal="true" aria-labelledby="index-logs-title">
+      <div class="index-logs-card">
+        <div class="index-logs-header">
+          <h3 id="index-logs-title">Completed Index Logs</h3>
+          <button id="index-logs-close" class="index-logs-close" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="index-logs-body">
+          <table class="index-logs-table">
+            <thead>
+              <tr><th>Patient / Visit</th><th>Documents</th><th>Files</th></tr>
+            </thead>
+            <tbody id="index-logs-list"></tbody>
+          </table>
+          <div id="index-logs-empty" class="index-logs-empty" hidden>No completed index logs found.</div>
+        </div>
+      </div>
+    </div>
 
     <div id="custom-alert-modal" class="custom-alert-modal" role="dialog" aria-modal="true" aria-labelledby="custom-alert-title">
       <div class="custom-alert-card">

@@ -22,7 +22,9 @@ contextBridge.exposeInMainWorld("FilePathApi", {
 contextBridge.exposeInMainWorld('dbAPI', {
     callOpPatientdata: (type, flag, value) => ipcRenderer.invoke('GetPatientData', { type, flag, value }),
     InertPatientdata: (username, patientid, document) => ipcRenderer.invoke('InsertPatientData', { username, patientid, document }),
-    GetIpNumberIndexCount: (ipno) => ipcRenderer.invoke('GetIpNoIndexCount',{ipno})
+    GetIpNumberIndexCount: (ipno) => ipcRenderer.invoke('GetIpNoIndexCount',{ipno}),
+    GetUserIndexCount: (username) => ipcRenderer.invoke('GetUserIndexCount', { username }),
+    GetUserIndexLogs: (username) => ipcRenderer.invoke('GetUserIndexLogs', { username })
 });
 
 contextBridge.exposeInMainWorld('IndexAPI', {

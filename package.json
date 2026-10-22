@@ -1,6 +1,6 @@
 {
   "name": "dmr",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "KMC_Corp_application",
   "license": "ISC",
   "author": "Gowrishankar-117811",
@@ -47,6 +47,7 @@
       }
     ],
     "win": {
+      "icon": "assets/icon.png",
       "target": "nsis"
     }
   }

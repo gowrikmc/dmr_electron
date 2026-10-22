@@ -1,7 +1,12 @@
 const IndexButton    = document.getElementById("btnIndex");
 const ViewButton     = document.getElementById("btnView");
 const SettingsButton = document.getElementById("btnSettings");
+const IndexTotalCard = document.getElementById("btnIndexTotal");
 const LogoutButton   = document.getElementById("logoutbutton");
+const indexLogsModal = document.getElementById("index-logs-modal");
+const indexLogsClose = document.getElementById("index-logs-close");
+const indexLogsList = document.getElementById("index-logs-list");
+const indexLogsEmpty = document.getElementById("index-logs-empty");
 const alertModal      = document.getElementById("custom-alert-modal");
 const alertTitle      = document.getElementById("custom-alert-title");
 const alertMessage    = document.getElementById("custom-alert-message");
@@ -89,6 +94,60 @@ window.alert = showCustomAlert;
 const username = sessionStorage.getItem("username") || "User";
 const unit     = sessionStorage.getItem("unit") || "—";
 const role     = sessionStorage.getItem("role") || "";
+const indexTotalEl = document.getElementById("index-total");
+
+async function loadIndexTotal() {
+    if (!indexTotalEl || !window.dbAPI?.GetUserIndexCount) return;
+
+    try {
+        const result = await window.dbAPI.GetUserIndexCount(username);
+        if (result?.success) indexTotalEl.textContent = Number(result.data).toLocaleString();
+        else indexTotalEl.textContent = "—";
+    } catch (error) {
+        console.error("Unable to load completed index total:", error);
+        indexTotalEl.textContent = "—";
+    }
+}
+
+function closeIndexLogs() {
+    indexLogsModal?.classList.remove("show");
+}
+
+function addLogCell(row, value) {
+    const cell = document.createElement("td");
+    cell.textContent = value ?? "—";
+    row.appendChild(cell);
+}
+
+async function showIndexLogs() {
+    if (!indexLogsModal || !indexLogsList || !window.dbAPI?.GetUserIndexLogs) return;
+
+    indexLogsList.replaceChildren();
+    indexLogsEmpty.hidden = true;
+    indexLogsModal.classList.add("show");
+
+    try {
+        const result = await window.dbAPI.GetUserIndexLogs(username);
+        if (!result?.success || !result.data?.length) {
+            indexLogsEmpty.hidden = false;
+            return;
+        }
+
+        result.data.forEach((log) => {
+            const row = document.createElement("tr");
+            addLogCell(row, log.opipno);
+            addLogCell(row, log.documents);
+            addLogCell(row, Number(log.file_count).toLocaleString());
+            indexLogsList.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Unable to load completed index logs:", error);
+        indexLogsEmpty.textContent = "Unable to load completed index logs.";
+        indexLogsEmpty.hidden = false;
+    }
+}
+
+loadIndexTotal();
 
 // Populate navbar
 const greetEl = document.getElementById("user-greeting");
@@ -115,6 +174,15 @@ ViewButton.addEventListener("keydown", (e) => keyNav(e, "File_view.html"));
 
 SettingsButton.addEventListener("click",   () => navigate("settings.html"));
 SettingsButton.addEventListener("keydown", (e) => keyNav(e, "settings.html"));
+
+IndexTotalCard.addEventListener("click", showIndexLogs);
+IndexTotalCard.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") showIndexLogs();
+});
+indexLogsClose.addEventListener("click", closeIndexLogs);
+indexLogsModal.addEventListener("click", (event) => {
+    if (event.target === indexLogsModal) closeIndexLogs();
+});
 
 LogoutButton.addEventListener("click", () => {
     showCustomConfirm("Are you sure you want to log out?", (confirmed) => {
